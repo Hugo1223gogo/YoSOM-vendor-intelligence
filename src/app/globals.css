@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cream: #FAF7F2;
+  --cream-2: #F2EDE4;
+  --ink: #1B2845;
+  --ink-soft: #2A3759;
+  --coral: #FF6B6B;
+  --coral-deep: #E85959;
+  --yale: #0F4D92;
+  --muted: #8A8A93;
+  --line: rgba(27, 40, 69, 0.08);
+}
+
+body {
+  color: var(--ink);
+  background: var(--cream);
+  font-family: -apple-system, "SF Pro Text", "SF Pro Display", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide scrollbar in chat */
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+
+/* Press-down for tappable cards */
+.tap-active {
+  transition: transform 120ms ease, box-shadow 200ms ease, background 200ms ease;
+}
+.tap-active:active {
+  transform: scale(0.97);
+}
