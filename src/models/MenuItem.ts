@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IMenuItem extends Document {
-  venue: "charlie" | "mcnay";
+  venue: "charleys" | "mcnay";
   itemId: string;
   name: string;
   emoji: string;
@@ -14,7 +14,7 @@ export interface IMenuItem extends Document {
 }
 
 const MenuItemSchema = new Schema<IMenuItem>({
-  venue: { type: String, required: true, enum: ["charlie", "mcnay"] },
+  venue: { type: String, required: true, enum: ["charleys", "mcnay"] },
   itemId: { type: String, required: true },
   name: { type: String, required: true },
   emoji: { type: String, required: true },

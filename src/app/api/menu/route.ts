@@ -14,7 +14,7 @@ function getMonday(d: Date): Date {
 
 export async function GET(req: NextRequest) {
   const venue = req.nextUrl.searchParams.get("venue");
-  if (!venue || !["charlie", "mcnay"].includes(venue)) {
+  if (!venue || !["charleys", "mcnay"].includes(venue)) {
     return NextResponse.json({ error: "Invalid venue" }, { status: 400 });
   }
 

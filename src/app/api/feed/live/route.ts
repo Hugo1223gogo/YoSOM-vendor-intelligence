@@ -13,7 +13,7 @@ function getMonday(d: Date): Date {
 }
 
 export async function GET(req: NextRequest) {
-  const venue = req.nextUrl.searchParams.get("venue") || "charlie";
+  const venue = req.nextUrl.searchParams.get("venue") || "charleys";
 
   await connectDB();
   const weekOf = getMonday(new Date());

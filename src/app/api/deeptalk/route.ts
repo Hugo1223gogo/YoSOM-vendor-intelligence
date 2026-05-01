@@ -22,20 +22,23 @@ export async function POST(req: NextRequest) {
 
   // Step 1: Classify intent
   const classifyRes = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20241022",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 50,
     system:
-      'You classify a single user message as "food_input", "off_topic", or "done". Reply with JSON: {"intent": "..."}. No prose.',
+      'You classify a single user message in a campus dining chatbot. Reply ONLY with JSON: {"intent":"food_input"} or {"intent":"done"} or {"intent":"off_topic"}.\n\n"food_input": ANY mention of food, drink, ingredient, cuisine, flavor, dietary need, meal, craving, hunger, restaurant, or cooking. Examples: "ramen", "something spicy", "I want chicken", "vegan options", "what\'s good". DEFAULT to this.\n"done": user says they\'re finished ("that\'s all", "done", "nothing else").\n"off_topic": ONLY if completely unrelated to food/dining (e.g. "what\'s the weather").\n\nWhen in doubt, ALWAYS choose "food_input".',
     messages: [{ role: "user", content: message }],
   });
 
   const classifyText =
     classifyRes.content[0].type === "text" ? classifyRes.content[0].text : "";
-  let intent = "off_topic";
+  let intent = "food_input";
   try {
-    intent = JSON.parse(classifyText).intent;
+    const parsed = JSON.parse(classifyText).intent;
+    if (["food_input", "done", "off_topic"].includes(parsed)) {
+      intent = parsed;
+    }
   } catch {
-    // default to off_topic on parse failure
+    // default to food_input on parse failure
   }
 
   if (intent === "off_topic") {
@@ -59,17 +62,26 @@ export async function POST(req: NextRequest) {
   // Append user message
   deepTalk.transcript.push({ role: "user", text: message, ts: new Date() });
 
+  const turnCount = deepTalk.transcript.filter(
+    (t: { role: string }) => t.role === "user"
+  ).length + 1; // +1 for the message we just appended
+
+  const isDone = intent === "done" || turnCount >= 3;
+
   // Step 3: Generate conversational reply
   const recentTurns = deepTalk.transcript.slice(-6).map((t: { role: string; text: string }) => ({
     role: t.role as "user" | "assistant",
     content: t.text,
   }));
 
+  const systemPrompt = isDone
+    ? "You are YoSOM, a friendly food-feedback chatbot for Yale SOM dining. The student has shared their cravings. Summarize what you heard in one warm sentence and say you've noted it down for next week's menu. Be casual, ≤30 words. Use 1 emoji max. Do NOT ask a question."
+    : "You are YoSOM, a friendly food-feedback chatbot for Yale SOM dining. Ask ONE short follow-up question about food preferences. Be warm, casual, ≤25 words. Use 1 emoji max. Never go off-topic.";
+
   const replyRes = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20241022",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 200,
-    system:
-      "You are YoSOM, a friendly food-feedback chatbot for Yale SOM dining. Ask ONE short follow-up question about food preferences. Be warm, casual, ≤25 words. Use 1 emoji max. Never go off-topic.",
+    system: systemPrompt,
     messages: recentTurns,
   });
 
@@ -79,14 +91,10 @@ export async function POST(req: NextRequest) {
   deepTalk.transcript.push({ role: "assistant", text: reply, ts: new Date() });
   await deepTalk.save();
 
-  const turnCount = deepTalk.transcript.filter(
-    (t: { role: string }) => t.role === "user"
-  ).length;
-
   return NextResponse.json({
     reply,
     intent: "food_input",
     turnCount,
-    done: intent === "done" || turnCount >= 3,
+    done: isDone,
   });
 }

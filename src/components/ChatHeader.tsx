@@ -4,7 +4,7 @@ import { RotateCcw } from "lucide-react";
 import type { Venue } from "@/lib/types";
 
 const venueMeta: Record<string, { emoji: string; name: string }> = {
-  charlie: { emoji: "🥪", name: "Charlie's" },
+  charleys: { emoji: "🥪", name: "Charley's" },
   mcnay: { emoji: "☕", name: "McNay" },
   none: { emoji: "🍽️", name: "YoSOM" },
 };

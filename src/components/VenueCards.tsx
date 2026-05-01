@@ -5,9 +5,9 @@ import type { Venue } from "@/lib/types";
 
 const venues = [
   {
-    id: "charlie" as Venue,
+    id: "charleys" as Venue,
     emoji: "🥪",
-    name: "Charlie's Place",
+    name: "Charley's",
     sub: "Hot meals & bowls",
     tone: "#FFE9D6",
   },

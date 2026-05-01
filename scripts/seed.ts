@@ -20,7 +20,7 @@ const weekOf = getMonday(new Date());
 
 const ITEMS = [
   {
-    venue: "charlie",
+    venue: "charleys",
     itemId: "ramen",
     emoji: "🍜",
     name: "Spicy Miso Ramen",
@@ -29,7 +29,7 @@ const ITEMS = [
     tone: "#FFE2D6",
   },
   {
-    venue: "charlie",
+    venue: "charleys",
     itemId: "bowl",
     emoji: "🥘",
     name: "Korean Rice Bowl",
@@ -38,7 +38,7 @@ const ITEMS = [
     tone: "#FFE9D6",
   },
   {
-    venue: "charlie",
+    venue: "charleys",
     itemId: "salad",
     emoji: "🥗",
     name: "Crunchy Thai Salad",
@@ -47,7 +47,7 @@ const ITEMS = [
     tone: "#E6F1E0",
   },
   {
-    venue: "charlie",
+    venue: "charleys",
     itemId: "burrito",
     emoji: "🌯",
     name: "Breakfast Burrito",

@@ -15,6 +15,9 @@ import VoteStack from "@/components/VoteStack";
 import EmojiReactions from "@/components/EmojiReactions";
 import LiveFeedCTA from "@/components/LiveFeedCTA";
 import LiveFeed from "@/components/LiveFeed";
+import PreferenceCard from "@/components/PreferenceCard";
+import FeedbackInput from "@/components/FeedbackInput";
+import type { PrefsPayload } from "@/components/PreferenceCard";
 
 type RichMsg = Msg & { textContent?: ReactNode };
 
@@ -22,18 +25,17 @@ export default function Home() {
   const [msgs, setMsgs] = useState<RichMsg[]>([]);
   const [stage, setStage] = useState<Stage>("boot");
   const [venue, setVenue] = useState<Venue | null>(null);
-  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [reaction, setReaction] = useState<ReactionValue | null>(null);
+  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
+  const [voteItems, setVoteItems] = useState<VoteItem[]>([]);
   const [deepTalkTurns, setDeepTalkTurns] = useState(0);
   const [view, setView] = useState<View>("chat");
   const [chatters, setChatters] = useState(47);
   const [input, setInput] = useState("");
-  const [voteItems, setVoteItems] = useState<VoteItem[]>([]);
   const [autoFocusInput, setAutoFocusInput] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const idRef = useRef(0);
-  const bootedRef = useRef(false);
 
   const nextId = () => ++idRef.current;
 
@@ -93,9 +95,9 @@ export default function Home() {
       kind: "ai",
       textContent: (
         <>
-          Hey! 👋 <b>{chatters} students</b> have chatted today. McNay Cafe is
-          leaning <b>Asian comfort food</b> this week. Wanna help shape next
-          week&apos;s menu? Takes 30 seconds.
+          Hey! 👋 <b>{chatters} students</b> have chatted today. Wanna help
+          shape next week&apos;s menu at Charley&apos;s or McNay? Takes 30
+          seconds.
         </>
       ),
     });
@@ -104,7 +106,6 @@ export default function Home() {
       kind: "chips",
       chips: [
         { id: "go", label: "Yes, let's go 🚀" },
-        { id: "show", label: "Show me what people want" },
         { id: "craving", label: "I have a specific craving" },
       ],
       handler: "welcome",
@@ -112,53 +113,71 @@ export default function Home() {
   }, [showTyping, replaceLastTyping, addMsg, chatters]);
 
   useEffect(() => {
-    if (!bootedRef.current) {
-      bootedRef.current = true;
-      boot();
-    }
-  }, [boot]);
+    boot();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Stage handlers
-  const goToVenuePick = useCallback(async () => {
+  const goToVenue = useCallback(async () => {
     setStage("venue");
-    await streamAI("Pick a spot 📍", { delay: 700 });
+    await streamAI(
+      "First off — where do you usually eat?",
+      { delay: 900 }
+    );
     await new Promise((r) => setTimeout(r, 200));
     addMsg({ kind: "venue" });
   }, [streamAI, addMsg]);
 
-  const goToVoteCards = useCallback(
-    async (venueId: Venue) => {
-      setStage("votes");
-      setVoteItems(VOTE_ITEMS[venueId]);
+  const goToPreferences = useCallback(async () => {
+    setStage("preferences");
+    await streamAI(
+      "Now let me get a quick read on your taste buds 🎯",
+      { delay: 900 }
+    );
+    await new Promise((r) => setTimeout(r, 200));
+    addMsg({ kind: "preferences" });
+  }, [streamAI, addMsg]);
+
+  const onPrefsComplete = useCallback(
+    async (prefs: PrefsPayload) => {
+      const parts = [
+        prefs.flavors.length && prefs.flavors.join(", "),
+        prefs.proteins.length && prefs.proteins.join(", "),
+        prefs.cuisines.length && prefs.cuisines.join(", "),
+      ].filter(Boolean);
+      addMsg({ kind: "user", text: parts.join(" · ") || "Preferences set!" });
+
+      fetch("/api/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(prefs),
+      }).catch(() => {});
+
+      const venueName = venue === "charleys" ? "Charley's" : "McNay Cafe";
+      setVoteItems(VOTE_ITEMS[venue!] || []);
+
       await streamAI(
         <>
-          Here are <b>4 ideas</b> I&apos;m considering for next week. Tap the
-          ones you&apos;d actually order 👇
+          Noted! We&apos;ll use your preferences to shape next week&apos;s menu 📝
+          In the meantime — how was the food at <b>{venueName}</b> this week? Tap
+          what you tried 👇
         </>,
-        { delay: 1100 }
+        { delay: 1000 }
       );
       await new Promise((r) => setTimeout(r, 200));
       addMsg({ kind: "votes" });
+      setStage("reaction");
     },
-    [streamAI, addMsg]
+    [addMsg, streamAI, venue]
   );
 
-  const goToReaction = useCallback(async () => {
-    setStage("reaction");
-    await streamAI("How was the Korean rice bowl this week? 🍚", {
-      delay: 1000,
-    });
-    await new Promise((r) => setTimeout(r, 150));
-    addMsg({ kind: "reactions" });
-  }, [streamAI, addMsg]);
-
   const goToFinal = useCallback(
-    async (totalVotes: number) => {
+    async (totalInputs: number) => {
       setStage("final");
       await streamAI(
         <>
-          🎉 You&apos;re done! Your vote joins <b>{totalVotes} others</b> in
-          tomorrow&apos;s brief. Wanna see live results?
+          🎉 You&apos;re done! Your input joins <b>{totalInputs} others</b> shaping
+          next week&apos;s menu. Wanna see live results?
         </>,
         { delay: 1100 }
       );
@@ -199,24 +218,23 @@ export default function Home() {
 
       if (handler === "welcome") {
         if (chip.id === "craving") goToDeepTalk("fromCravings");
-        else goToVenuePick();
+        else goToVenue();
       } else if (handler === "postdeep") {
         goToFinal(chatters);
       }
     },
-    [addMsg, goToVenuePick, goToDeepTalk, goToFinal, chatters]
+    [addMsg, goToVenue, goToDeepTalk, goToFinal, chatters]
   );
 
   // Venue pick
   const onVenuePick = useCallback(
     async (venueId: Venue) => {
       setVenue(venueId);
-      const name =
-        venueId === "charlie" ? "Charlie's Place" : "McNay Cafe";
+      const name = venueId === "charleys" ? "Charley's" : "McNay Cafe";
       setTimeout(() => addMsg({ kind: "user", text: name }), 200);
-      setTimeout(() => goToVoteCards(venueId), 700);
+      setTimeout(() => goToPreferences(), 700);
     },
-    [addMsg, goToVoteCards]
+    [addMsg, goToPreferences]
   );
 
   // Vote handler
@@ -231,12 +249,7 @@ export default function Home() {
       setVoteItems((prev) =>
         prev.map((it) =>
           it.id === itemId
-            ? {
-                ...it,
-                votes: votedIds.has(itemId)
-                  ? it.votes - 1
-                  : it.votes + 1,
-              }
+            ? { ...it, votes: votedIds.has(itemId) ? it.votes - 1 : it.votes + 1 }
             : it
         )
       );
@@ -244,11 +257,7 @@ export default function Home() {
         fetch("/api/vote", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            itemId,
-            venue,
-            value: votedIds.has(itemId) ? -1 : 1,
-          }),
+          body: JSON.stringify({ itemId, venue, value: votedIds.has(itemId) ? -1 : 1 }),
         }).catch(() => {});
       }
     },
@@ -256,18 +265,18 @@ export default function Home() {
   );
 
   const onVoteDone = useCallback(async () => {
-    setStage("reaction");
     addMsg({
       kind: "user",
-      text: `Voted on ${votedIds.size} item${votedIds.size === 1 ? "" : "s"}`,
+      text: `Rated ${votedIds.size} item${votedIds.size === 1 ? "" : "s"}`,
     });
-    setTimeout(() => goToReaction(), 500);
-  }, [votedIds, goToReaction, addMsg]);
-
-  const onVoteDeepTalk = useCallback(() => {
-    addMsg({ kind: "user", text: "Nothing here." });
-    setTimeout(() => goToDeepTalk("fromVotes"), 400);
-  }, [addMsg, goToDeepTalk]);
+    await new Promise((r) => setTimeout(r, 400));
+    await streamAI(
+      "How was the food overall this week? 🍽️",
+      { delay: 900 }
+    );
+    await new Promise((r) => setTimeout(r, 150));
+    addMsg({ kind: "reactions" });
+  }, [votedIds, addMsg, streamAI]);
 
   // Reaction handler
   const onReactionPick = useCallback(
@@ -276,35 +285,42 @@ export default function Home() {
       const label = id === "up" ? "👍" : id === "mid" ? "😐" : "👎";
       addMsg({ kind: "user", text: label });
       await new Promise((r) => setTimeout(r, 350));
-      await streamAI(
-        id === "down"
-          ? "Got it — noted. Thanks for the honesty 🙏"
-          : "Got it, thanks!",
-        { delay: 800 }
-      );
+      const replies: Record<ReactionValue, string> = {
+        up: "Glad to hear it! We'll keep the good stuff coming 🔥",
+        mid: "Fair enough — we'll work on leveling things up 💪",
+        down: "Sorry to hear that. Mind sharing what went wrong? (optional)",
+      };
+      await streamAI(replies[id], { delay: 800 });
       fetch("/api/reaction", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId: "bowl", value: id }),
+        body: JSON.stringify({ itemId: venue ?? "general", value: id }),
       }).catch(() => {});
-      setTimeout(() => goToFinal(chatters), 600);
+      if (id === "down") {
+        await new Promise((r) => setTimeout(r, 200));
+        addMsg({ kind: "feedback" });
+      } else {
+        setTimeout(() => goToFinal(chatters), 600);
+      }
     },
-    [streamAI, goToFinal, addMsg, chatters]
+    [streamAI, goToFinal, addMsg, chatters, venue]
   );
 
-  // Off-topic detection
-  const FOOD_HINTS =
-    /\b(food|eat|hungry|crav|spicy|sweet|savory|ramen|noodle|rice|bowl|sandwich|wrap|salad|soup|burrito|taco|curry|coffee|matcha|boba|tea|latte|breakfast|lunch|dinner|snack|protein|tofu|chicken|beef|pork|veg|vegan|gluten|dairy|cheese|bread|sauce|broth|drink|cold|hot|fresh|crunch|warm|comfort|asian|mexican|italian|thai|korean|indian|japanese|chinese|miso|kimchi|pesto|chickpea|garlic|spice|fries|burger|pizza|pasta|egg|fish|shrimp|salmon|tuna|seasonal|local|menu|dish|meal|item|order|price|cheap|expensive|filling|light|dessert|cake|cookie|smoothie|juice|water|caffeine|brunch|night|late)\b/i;
-
-  const isOffTopic = (text: string) => {
-    if (text.length < 3) return false;
-    return !FOOD_HINTS.test(text);
-  };
-
-  const firstWord = (s: string) => {
-    const w = s.split(/\s+/).slice(0, 2).join(" ");
-    return w.charAt(0).toUpperCase() + w.slice(1);
-  };
+  const onFeedbackSubmit = useCallback(
+    async (text: string) => {
+      if (text.trim()) {
+        addMsg({ kind: "user", text: text.trim() });
+        fetch("/api/reaction", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itemId: venue ?? "general", value: "down", feedback: text.trim() }),
+        }).catch(() => {});
+        await streamAI("Thanks for sharing — we'll make sure the team sees this 🙏", { delay: 800 });
+      }
+      setTimeout(() => goToFinal(chatters), 600);
+    },
+    [addMsg, streamAI, goToFinal, chatters, venue]
+  );
 
   // Send (deep talk / from any stage)
   const onSend = useCallback(async () => {
@@ -315,66 +331,51 @@ export default function Home() {
 
     if (stage !== "deeptalk") setStage("deeptalk");
 
-    if (isOffTopic(text)) {
-      await streamAI(
-        <>
-          Ha — I hear you, but I can only help with <b>food at SOM</b> 🍽️
-          What would actually hit the spot for lunch this week?
-        </>,
-        { delay: 1100 }
-      );
-      return;
-    }
+    showTyping();
 
-    const turn = deepTalkTurns + 1;
-    setDeepTalkTurns(turn);
+    try {
+      const res = await fetch("/api/deeptalk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      const data = await res.json();
 
-    if (turn === 1) {
-      await streamAI(
-        <>
-          {firstWord(text)}, got it. Are you thinking{" "}
-          <b>tonkotsu broth</b> or something lighter? 🍜
-        </>,
-        { delay: 1200 }
-      );
-    } else if (turn === 2) {
-      await streamAI(
-        "Mm, that's helpful. Any specific protein or veg you're craving with it?",
-        { delay: 1100 }
-      );
-    } else {
-      await streamAI(
-        "Cool, I've got enough. Want to see what others are voting on too? →",
-        { delay: 1000 }
-      );
-      await new Promise((r) => setTimeout(r, 200));
-      addMsg({
-        kind: "chips",
-        chips: [{ id: "yes", label: "Yes, show me" }],
-        handler: "postdeep",
+      replaceLastTyping({ kind: "ai", text: data.reply });
+
+      if (data.done) {
+        setDeepTalkTurns(data.turnCount ?? 3);
+        await new Promise((r) => setTimeout(r, 300));
+        addMsg({
+          kind: "chips",
+          chips: [{ id: "yes", label: "Sounds good! 👍" }],
+          handler: "postdeep",
+        });
+      } else {
+        setDeepTalkTurns(data.turnCount ?? deepTalkTurns + 1);
+      }
+    } catch {
+      replaceLastTyping({
+        kind: "ai",
+        text: "Hmm, something went wrong. Try again? 🍽️",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input, stage, deepTalkTurns, streamAI, addMsg]);
+  }, [input, stage, deepTalkTurns, showTyping, replaceLastTyping, addMsg]);
 
   // Reset
   const reset = useCallback(() => {
     setMsgs([]);
     setStage("boot");
     setVenue(null);
-    setVotedIds(new Set());
     setReaction(null);
-    setDeepTalkTurns(0);
+    setVotedIds(new Set());
     setVoteItems([]);
+    setDeepTalkTurns(0);
     setView("chat");
     setInput("");
     setAutoFocusInput(false);
     idRef.current = 0;
-    bootedRef.current = false;
-    setTimeout(() => {
-      bootedRef.current = true;
-      boot();
-    }, 60);
+    setTimeout(() => boot(), 60);
   }, [boot]);
 
   // Render messages
@@ -406,8 +407,8 @@ export default function Home() {
           voted={votedIds}
           onVote={onVote}
           onDone={onVoteDone}
-          onDeepTalk={onVoteDeepTalk}
-          doneShown={votedIds.size > 0 && stage === "votes"}
+          doneShown={votedIds.size > 0 && stage === "reaction"}
+          doneLabel="Submit"
         />
       );
     }
@@ -418,6 +419,14 @@ export default function Home() {
       );
     }
 
+    if (m.kind === "feedback") {
+      return <FeedbackInput key={m.id} onSubmit={onFeedbackSubmit} />;
+    }
+
+    if (m.kind === "preferences") {
+      return <PreferenceCard key={m.id} venue={venue} onComplete={onPrefsComplete} />;
+    }
+
     if (m.kind === "cta") {
       return <LiveFeedCTA key={m.id} onClick={() => setView("feed")} />;
     }
@@ -426,30 +435,32 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-cream">
-      {view === "feed" ? (
-        <>
-          <ChatHeader venue={venue} chatters={chatters} onReset={reset} />
-          <LiveFeed onBack={() => setView("chat")} />
-        </>
-      ) : (
-        <>
-          <ChatHeader venue={venue} chatters={chatters} onReset={reset} />
-          <div
-            ref={scrollRef}
-            className="scrollbar-hide flex flex-1 flex-col gap-2.5 overflow-y-auto px-3.5 pb-[18px] pt-4"
-          >
-            {msgs.map(renderMsg)}
-            <div className="h-1" />
-          </div>
-          <InputBar
-            value={input}
-            onChange={setInput}
-            onSend={onSend}
-            autoFocus={autoFocusInput}
-          />
-        </>
-      )}
+    <div className="flex min-h-[100dvh] items-center justify-center bg-cream sm:bg-[#0a0a0c] sm:p-6">
+      <div className="flex h-[100dvh] w-full flex-col bg-cream sm:h-[844px] sm:max-w-[390px] sm:rounded-[2rem] sm:shadow-2xl sm:ring-1 sm:ring-white/10">
+        {view === "feed" ? (
+          <>
+            <ChatHeader venue={venue} chatters={chatters} onReset={reset} />
+            <LiveFeed onBack={() => setView("chat")} />
+          </>
+        ) : (
+          <>
+            <ChatHeader venue={venue} chatters={chatters} onReset={reset} />
+            <div
+              ref={scrollRef}
+              className="scrollbar-hide flex flex-1 flex-col gap-2.5 overflow-y-auto px-3.5 pb-[18px] pt-4"
+            >
+              {msgs.map(renderMsg)}
+              <div className="h-1" />
+            </div>
+            <InputBar
+              value={input}
+              onChange={setInput}
+              onSend={onSend}
+              autoFocus={autoFocusInput}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }

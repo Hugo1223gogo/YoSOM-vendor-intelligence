@@ -1,15 +1,15 @@
 export type Stage =
   | "boot"
   | "welcome"
+  | "preferences"
   | "venue"
-  | "votes"
   | "reaction"
   | "final"
   | "deeptalk";
 
 export type View = "chat" | "feed";
 
-export type Venue = "charlie" | "mcnay";
+export type Venue = "charleys" | "mcnay";
 
 export type ReactionValue = "up" | "mid" | "down";
 
@@ -31,12 +31,14 @@ export type MsgKind =
   | "venue"
   | "votes"
   | "reactions"
-  | "cta";
+  | "feedback"
+  | "cta"
+  | "preferences";
 
 export interface Msg {
   id: number;
   kind: MsgKind;
   text?: string;
   chips?: { id: string; label: string }[];
-  handler?: "welcome" | "postdeep";
+  handler?: "welcome" | "postdeep" | "postprefs";
 }

@@ -3,12 +3,18 @@
 import { useState, useEffect } from "react";
 import { Share2 } from "lucide-react";
 
-const TOP_ITEMS_SEED = [
+const CHARLEYS_ITEMS_SEED = [
   { id: "ramen", name: "Spicy Miso Ramen", emoji: "🍜", votes: 124, tone: "#FFE2D6" },
   { id: "bowl", name: "Korean Rice Bowl", emoji: "🥘", votes: 98, tone: "#FFE9D6" },
   { id: "burrito", name: "Breakfast Burrito", emoji: "🌯", votes: 81, tone: "#FFF1D6" },
   { id: "salad", name: "Crunchy Thai Salad", emoji: "🥗", votes: 64, tone: "#E6F1E0" },
-  { id: "boba", name: "Brown Sugar Boba", emoji: "🧋", votes: 52, tone: "#EFE0F0" },
+];
+
+const MCNAY_ITEMS_SEED = [
+  { id: "matcha", name: "Iced Matcha Latte", emoji: "🍵", votes: 112, tone: "#E0EFE3" },
+  { id: "boba", name: "Brown Sugar Boba", emoji: "🧋", votes: 89, tone: "#EFE0F0" },
+  { id: "sandwich", name: "Pesto Caprese Sub", emoji: "🥪", votes: 67, tone: "#E6F1E0" },
+  { id: "wrap", name: "Buffalo Chick Wrap", emoji: "🌯", votes: 53, tone: "#FFE2D6" },
 ];
 
 const WORDS = [
@@ -17,33 +23,95 @@ const WORDS = [
   "breakfast", "tacos", "cold brew", "curry", "chickpea",
 ];
 
+type FeedItem = { id: string; name: string; emoji: string; votes: number; tone: string };
+
+function VenueSection({ emoji, name, items }: { emoji: string; name: string; items: FeedItem[] }) {
+  const max = Math.max(...items.map((i) => i.votes));
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center gap-2">
+        <div
+          className="flex h-7 w-7 flex-shrink-0 items-center justify-center text-sm"
+          style={{
+            borderRadius: 8,
+            background: "linear-gradient(135deg, #1B2845 0%, #0F4D92 100%)",
+          }}
+        >
+          <span>{emoji}</span>
+        </div>
+        <span className="text-[12px] font-bold uppercase tracking-[1.2px] text-muted">
+          {name} · Top picks
+        </span>
+      </div>
+      {items.map((it, i) => {
+        const pct = (it.votes / max) * 100;
+        return (
+          <div key={it.id} className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center text-xl"
+                style={{ borderRadius: 11, background: it.tone }}
+              >
+                {it.emoji}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[14.5px] font-semibold text-ink">{it.name}</div>
+              </div>
+              <div className="text-[14px] font-bold tabular-nums text-coral-deep">
+                {it.votes}
+              </div>
+            </div>
+            <div
+              className="relative ml-[46px] h-2.5 overflow-hidden rounded-pill"
+              style={{ background: "rgba(27,40,69,0.06)" }}
+            >
+              <div
+                className="absolute inset-0 rounded-pill transition-[width] duration-[800ms]"
+                style={{
+                  width: `${pct}%`,
+                  background:
+                    i === 0
+                      ? "linear-gradient(90deg, #FF6B6B, #FF8C66)"
+                      : `rgba(27,40,69,${0.55 - i * 0.08})`,
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 interface LiveFeedProps {
   onBack: () => void;
 }
 
+function bumpItems(prev: FeedItem[]): FeedItem[] {
+  const n = prev.map((p) => ({ ...p }));
+  const bumps = 1 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < bumps; i++) {
+    const idx = Math.floor(Math.random() * n.length);
+    n[idx].votes += 1 + Math.floor(Math.random() * 3);
+  }
+  return n.sort((a, b) => b.votes - a.votes);
+}
+
 export default function LiveFeed({ onBack }: LiveFeedProps) {
-  const [items, setItems] = useState(TOP_ITEMS_SEED);
+  const [charleysItems, setCharleysItems] = useState(CHARLEYS_ITEMS_SEED);
+  const [mcnayItems, setMcnayItems] = useState(MCNAY_ITEMS_SEED);
   const [chatters, setChatters] = useState(47);
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => {
-      setItems((prev) => {
-        const n = prev.map((p) => ({ ...p }));
-        const bumps = 1 + Math.floor(Math.random() * 2);
-        for (let i = 0; i < bumps; i++) {
-          const idx = Math.floor(Math.random() * n.length);
-          n[idx].votes += 1 + Math.floor(Math.random() * 3);
-        }
-        return n.sort((a, b) => b.votes - a.votes);
-      });
+      setCharleysItems(bumpItems);
+      setMcnayItems(bumpItems);
       setChatters((c) => c + (Math.random() > 0.5 ? 1 : 0));
       setTick((t) => t + 1);
     }, 2200);
     return () => clearInterval(t);
   }, []);
-
-  const max = Math.max(...items.map((i) => i.votes));
 
   return (
     <div className="animate-fade-up flex flex-1 flex-col overflow-hidden bg-cream">
@@ -72,46 +140,13 @@ export default function LiveFeed({ onBack }: LiveFeedProps) {
 
       {/* Body */}
       <div className="scrollbar-hide flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 pb-6 pt-[18px]">
-        <div className="text-[11px] font-bold uppercase tracking-[1.4px] text-muted">
-          Top picks · this week
-        </div>
+        {/* Charley's */}
+        <VenueSection emoji="🥪" name="Charley's" items={charleysItems} />
 
-        {items.map((it, i) => {
-          const pct = (it.votes / max) * 100;
-          return (
-            <div key={it.id} className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center text-xl"
-                  style={{ borderRadius: 11, background: it.tone }}
-                >
-                  {it.emoji}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[14.5px] font-semibold text-ink">{it.name}</div>
-                </div>
-                <div className="text-[14px] font-bold tabular-nums text-coral-deep">
-                  {it.votes}
-                </div>
-              </div>
-              <div
-                className="relative ml-[46px] h-2.5 overflow-hidden rounded-pill"
-                style={{ background: "rgba(27,40,69,0.06)" }}
-              >
-                <div
-                  className="absolute inset-0 rounded-pill transition-[width] duration-[800ms]"
-                  style={{
-                    width: `${pct}%`,
-                    background:
-                      i === 0
-                        ? "linear-gradient(90deg, #FF6B6B, #FF8C66)"
-                        : `rgba(27,40,69,${0.55 - i * 0.08})`,
-                  }}
-                />
-              </div>
-            </div>
-          );
-        })}
+        {/* McNay Cafe */}
+        <div className="mt-2">
+          <VenueSection emoji="☕" name="McNay Cafe" items={mcnayItems} />
+        </div>
 
         {/* Word cloud */}
         <div className="mt-3.5">

@@ -1,7 +1,7 @@
 import type { VoteItem } from "./types";
 
 export const VOTE_ITEMS: Record<string, VoteItem[]> = {
-  charlie: [
+  charleys: [
     {
       id: "ramen",
       emoji: "🍜",
