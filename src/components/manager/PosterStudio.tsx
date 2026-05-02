@@ -38,8 +38,8 @@ export default function PosterStudio({
   const [vibe, setVibe] = useState(VIBES[0]);
   const [model, setModel] = useState<"dall-e-3" | "gpt-image-1">("dall-e-3");
   const [customPrompt, setCustomPrompt] = useState("");
-  const [size, setSize] = useState<"1024x1024" | "1024x1536" | "1536x1024">(
-    "1024x1536",
+  const [aspect, setAspect] = useState<"portrait" | "square" | "landscape">(
+    "portrait",
   );
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PosterResult | null>(null);
@@ -56,7 +56,7 @@ export default function PosterStudio({
           venue,
           itemName,
           vibe,
-          size,
+          aspect,
           customPrompt,
           model,
         }),
@@ -122,13 +122,13 @@ export default function PosterStudio({
           <div className="grid grid-cols-2 gap-3">
             <Field label="Aspect">
               <select
-                value={size}
-                onChange={(e) => setSize(e.target.value as typeof size)}
+                value={aspect}
+                onChange={(e) => setAspect(e.target.value as typeof aspect)}
                 className="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm"
               >
-                <option value="1024x1536">Portrait (Insta story)</option>
-                <option value="1024x1024">Square (Insta post)</option>
-                <option value="1536x1024">Landscape (banner)</option>
+                <option value="portrait">Portrait (Insta story)</option>
+                <option value="square">Square (Insta post)</option>
+                <option value="landscape">Landscape (banner)</option>
               </select>
             </Field>
             <Field label="Model">

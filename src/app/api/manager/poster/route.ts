@@ -28,17 +28,42 @@ export async function POST(req: NextRequest) {
     itemName = "next week's special",
     venue = "charleys",
     vibe = "playful",
-    size = "1024x1536",
+    aspect = "portrait",
     customPrompt,
     model = "dall-e-3",
   } = body as {
     itemName?: string;
     venue?: "charleys" | "mcnay";
     vibe?: string;
-    size?: "1024x1024" | "1024x1536" | "1536x1024";
+    aspect?: "portrait" | "square" | "landscape";
     customPrompt?: string;
     model?: "dall-e-3" | "gpt-image-1";
   };
+
+  // Each model has its own valid size set.
+  // DALL-E 3:    1024x1024, 1024x1792 (portrait), 1792x1024 (landscape)
+  // gpt-image-1: 1024x1024, 1024x1536 (portrait), 1536x1024 (landscape)
+  const SIZES: Record<
+    "dall-e-3" | "gpt-image-1",
+    Record<"portrait" | "square" | "landscape", string>
+  > = {
+    "dall-e-3": {
+      portrait: "1024x1792",
+      square: "1024x1024",
+      landscape: "1792x1024",
+    },
+    "gpt-image-1": {
+      portrait: "1024x1536",
+      square: "1024x1024",
+      landscape: "1536x1024",
+    },
+  };
+  const size = SIZES[model][aspect] as
+    | "1024x1024"
+    | "1024x1792"
+    | "1792x1024"
+    | "1024x1536"
+    | "1536x1024";
 
   const venueDesc =
     venue === "charleys"
@@ -59,7 +84,9 @@ high contrast, magazine-cover energy.`;
     const response = await openai.images.generate({
       model,
       prompt,
-      size: size as "1024x1024" | "1024x1536" | "1536x1024",
+      // OpenAI's TS types narrow size to model-specific unions; the
+      // SIZES table above already enforces the right value, so we widen.
+      size: size as never,
       n: 1,
       ...(model === "dall-e-3" ? { quality: "hd", style: "vivid" } : {}),
       ...(model === "gpt-image-1" ? { quality: "high" } : {}),
