@@ -15,7 +15,9 @@ import { costsForVenue, findCostItem } from "@/data/manager/menu-costs";
 import Reaction from "@/models/Reaction";
 import Preference from "@/models/Preference";
 
-const MODEL = "claude-sonnet-4-6";
+// Haiku is 3-5x faster than Sonnet for the brief and good enough quality —
+// keeps the page responsive on Vercel's serverless function budget.
+const MODEL = "claude-haiku-4-5-20251001";
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -159,7 +161,7 @@ async function callClaude(
 
   const response = await client.messages.create({
     model: MODEL,
-    max_tokens: 4096,
+    max_tokens: 2500,
     system: [
       {
         type: "text",

@@ -5,6 +5,8 @@ import type { OpsBrief, Venue } from "@/lib/manager/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Claude calls can run 10-30s; default Vercel timeout is too short.
+export const maxDuration = 60;
 
 // Tiny in-memory cache so demo clicks don't burn API quota.
 const CACHE_TTL_MS = 5 * 60 * 1000;
