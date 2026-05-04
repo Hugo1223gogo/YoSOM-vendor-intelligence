@@ -28,7 +28,7 @@ export default async function ForecastPage({
     <>
       <PageHeader
         title="Demand Forecast"
-        subtitle={`${VENUE_LABEL[venue]} · 7-day projection · 3-input model`}
+        subtitle={`${VENUE_LABEL[venue]} · weekday projection · 3-input model`}
       />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -58,8 +58,8 @@ export default async function ForecastPage({
       </div>
 
       <Card
-        title="Predicted servings · next 7 days"
-        subtitle="Survey × events × exchange-weeks → daily projection with confidence band"
+        title="Predicted servings · next 5 weekdays"
+        subtitle="Survey × events × exchange-weeks → weekday projection with confidence band (closed Sat/Sun)"
         className="mb-6"
       >
         <ForecastAreaChart data={forecast.days} />

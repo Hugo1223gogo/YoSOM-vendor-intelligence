@@ -37,6 +37,9 @@ export async function buildForecast(
   for (let i = 0; i < daysAhead; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
+    // Charley's and McNay are closed on weekends — no demand to forecast.
+    const dow = d.getDay();
+    if (dow === 0 || dow === 6) continue;
     const date = isoDate(d);
     const events = eventsOnDate(date, venue);
     const eventMul =
@@ -72,7 +75,7 @@ export async function buildForecast(
   }
 
   const predictedTotal = days.reduce((s, d) => s + d.predictedServings, 0);
-  const baselineTotal = baselineServings * daysAhead;
+  const baselineTotal = baselineServings * days.length;
   const delta = predictedTotal - baselineTotal;
 
   return {

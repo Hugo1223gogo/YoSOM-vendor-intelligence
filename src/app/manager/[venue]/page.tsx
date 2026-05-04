@@ -92,7 +92,7 @@ export default async function OverviewPage({
           icon="❤"
         />
         <KpiCard
-          label="Predicted Servings (7d)"
+          label="Predicted Servings (next week)"
           value={forecast.weeklyTotals.predictedServings}
           delta={`${forecast.weeklyTotals.deltaPct >= 0 ? "+" : ""}${
             forecast.weeklyTotals.deltaPct
@@ -119,7 +119,7 @@ export default async function OverviewPage({
       <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card
           title="Demand forecast"
-          subtitle="Next 7 days · servings, with confidence band"
+          subtitle="Next weekdays · servings, with confidence band"
           className="lg:col-span-2"
         >
           <ForecastAreaChart data={forecast.days} />
