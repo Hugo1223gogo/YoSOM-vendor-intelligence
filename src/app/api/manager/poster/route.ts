@@ -91,15 +91,21 @@ high contrast, magazine-cover energy.`;
       // SIZES table above already enforces the right value, so we widen.
       size: size as never,
       n: 1,
-      // Standard quality (vs HD) cuts DALL-E 3 latency ~50% and fits inside
-      // the 60s Hobby budget for portrait. Quality drop is barely visible.
-      ...(model === "dall-e-3" ? { quality: "standard", style: "vivid" } : {}),
+      // Request base64 directly so the image is embedded in our JSON response.
+      // Returning OpenAI's Azure blob URL fails on networks that block
+      // *.blob.core.windows.net (Yale/corporate VPNs in particular).
+      // gpt-image-1 always returns b64_json; DALL-E 3 defaults to url.
+      ...(model === "dall-e-3"
+        ? { quality: "standard", style: "vivid", response_format: "b64_json" }
+        : {}),
       ...(model === "gpt-image-1" ? { quality: "high" } : {}),
     });
 
     const first = response.data?.[0];
     if (!first) throw new Error("No image returned");
 
+    // Always render as data URL — never expose third-party image hosts to
+    // the browser, which avoids campus-network blocks and outbound CORS issues.
     const imageDataUrl = first.b64_json
       ? `data:image/png;base64,${first.b64_json}`
       : first.url;
