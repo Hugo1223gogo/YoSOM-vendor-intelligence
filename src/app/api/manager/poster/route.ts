@@ -3,6 +3,9 @@ import OpenAI from "openai";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// DALL-E 3 generation can run 25-50s on standard quality; default Vercel
+// Hobby timeout would kill the function. 60s is the Hobby max.
+export const maxDuration = 60;
 
 let client: OpenAI | null = null;
 function getClient(): OpenAI {
@@ -88,7 +91,9 @@ high contrast, magazine-cover energy.`;
       // SIZES table above already enforces the right value, so we widen.
       size: size as never,
       n: 1,
-      ...(model === "dall-e-3" ? { quality: "hd", style: "vivid" } : {}),
+      // Standard quality (vs HD) cuts DALL-E 3 latency ~50% and fits inside
+      // the 60s Hobby budget for portrait. Quality drop is barely visible.
+      ...(model === "dall-e-3" ? { quality: "standard", style: "vivid" } : {}),
       ...(model === "gpt-image-1" ? { quality: "high" } : {}),
     });
 
