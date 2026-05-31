@@ -100,10 +100,6 @@ A team project for **MGT 575 — Generative AI for Business** at Yale School of 
 |---|---|
 | **[Yu Guo](https://github.com/Hugo1223gogo)** (this repo's owner) | Vendor-side intelligence console: dashboard, three-input demand forecast, Claude-powered ops brief, DALL-E poster studio, deployment, manager SOP. |
 | **[Hsin-Yuan Lee](https://github.com/yuanlee218)** | Student-side chatbot UX, conversation state machine, MongoDB schemas, classification pipeline, design system. |
-| **Junyi Tang** | Final report writing, presentation deck, market and competitive research. |
-| **Amy Qiu** | Final report writing, presentation deck, ethics and selection-bias analysis. |
-| **Linhang Ren** | Final report writing, presentation deck, vision-forward sections (multiagent + LLM wikis). |
-| **Xiaoxiao Wu** | Final report writing, presentation deck, evaluation methodology. |
 
 Documentation in this repo:
 - [`docs/YoSOM_Final_Report_Yo.pdf`](docs/YoSOM_Final_Report_Yo.pdf) — the 20-page final report (submitted version).
