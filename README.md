@@ -2,6 +2,9 @@
 
 A two-sided AI system that turns student food input into operating decisions for Yale School of Management's dining venues — **Charley's Place** and **McNay Cafe**.
 
+> 📄 **Submitted as the final project** for MGT 575 — Generative AI for Business, Yale SOM, May 2026.
+> Read the [final report (PDF, 20 pp)](docs/YoSOM_Final_Report_Yo.pdf) · [presentation deck (PDF, 12 pp)](docs/YoSOM_Presentation.pdf).
+
 🔗 **Live demo**
 
 - **Student app** (mobile, chat-style): [yosom.vercel.app](https://yosom.vercel.app)
@@ -89,14 +92,28 @@ scripts/
 └── seed-demo-day.ts              # Demo-day seeder (60+ sessions in current week)
 ```
 
-## Credits
+## Team
 
-This was a team project for **MGT 575 — Generative AI for Business** at Yale School of Management, May 2026.
+A team project for **MGT 575 — Generative AI for Business** at Yale School of Management, May 2026.
 
-- **[Hsin-Yuan Lee](https://github.com/yuanlee218)** — student-side chatbot UX, conversation state machine, MongoDB schemas, classification pipeline, design system.
-- **[Yu Guo](https://github.com/Hugo1223gogo)** (this repo's owner) — vendor-side intelligence console: dashboard, three-input demand forecast, Claude-generated ops brief, DALL-E poster studio, deployment.
+| Member | Role |
+|---|---|
+| **[Yu Guo](https://github.com/Hugo1223gogo)** (this repo's owner) | Vendor-side intelligence console: dashboard, three-input demand forecast, Claude-powered ops brief, DALL-E poster studio, deployment, manager SOP. |
+| **[Hsin-Yuan Lee](https://github.com/yuanlee218)** | Student-side chatbot UX, conversation state machine, MongoDB schemas, classification pipeline, design system. |
+| **Junyi Tang** | Final report writing, presentation deck, market and competitive research. |
+| **Amy Qiu** | Final report writing, presentation deck, ethics and selection-bias analysis. |
+| **Linhang Ren** | Final report writing, presentation deck, vision-forward sections (multiagent + LLM wikis). |
+| **Xiaoxiao Wu** | Final report writing, presentation deck, evaluation methodology. |
 
-The student-side design handoff doc lives at [`docs/HANDOFF.md`](docs/HANDOFF.md). The vendor-side standard operating procedure lives at [`docs/MANAGER_SOP.md`](docs/MANAGER_SOP.md).
+Documentation in this repo:
+- [`docs/YoSOM_Final_Report_Yo.pdf`](docs/YoSOM_Final_Report_Yo.pdf) — the 20-page final report (submitted version).
+- [`docs/YoSOM_Presentation.pdf`](docs/YoSOM_Presentation.pdf) — the 12-slide live-demo deck.
+- [`docs/MANAGER_SOP.md`](docs/MANAGER_SOP.md) — vendor-manager standard operating procedure (Markdown).
+- [`docs/HANDOFF.md`](docs/HANDOFF.md) — original design handoff spec for the student side.
+
+## The bigger vision
+
+YoSOM today is a dining tool. The final-report **Section 4.6** and presentation slides 10–12 lay out where we'd take it next: an eight-agent operating system for Evans Hall (Dining, Procurement, Energy, Events, Facilities, Career Office, Wayfinding, plus an Orchestrator), connected by a shared event bus and an institutional-memory wiki layer modeled on Karpathy's LLM-Wiki pattern. Phased rollout, governance ladder, and three asks (pilot, data, BMS read-only feed) are detailed in the report.
 
 ## Status
 
