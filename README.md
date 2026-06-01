@@ -66,7 +66,7 @@ npx tsx scripts/seed-dummy-data.ts --clean
 ```
 src/
 ├── app/
-│   ├── manager/                  # Vendor-side routes (Yu Guo)
+│   ├── manager/                  # Vendor-side routes (Guo Yu)
 │   │   ├── page.tsx              # Venue picker
 │   │   └── [venue]/              # Overview · Forecast · Brief · Data · Posters
 │   ├── api/manager/              # Brief + poster generation endpoints
@@ -98,7 +98,7 @@ A team project for **MGT 575 — Generative AI for Business** at Yale School of 
 
 | Member | Role |
 |---|---|
-| **[Yu Guo](https://github.com/Hugo1223gogo)** (this repo's owner) | Vendor-side intelligence console: dashboard, three-input demand forecast, Claude-powered ops brief, DALL-E poster studio, deployment, manager SOP. |
+| **[Guo Yu](https://github.com/Hugo1223gogo)** (this repo's owner) | Vendor-side intelligence console: dashboard, three-input demand forecast, Claude-powered ops brief, DALL-E poster studio, deployment, manager SOP. |
 | **[Hsin-Yuan Lee](https://github.com/yuanlee218)** | Student-side chatbot UX, conversation state machine, MongoDB schemas, classification pipeline, design system. |
 
 Documentation in this repo:
